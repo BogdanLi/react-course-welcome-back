@@ -54,6 +54,11 @@ export class ExtensionsController {
     return await queryBuilder.getRawMany<{ description: string }>();
   }
 
+  @Get('/admin')
+  async getAllAdmin() {
+    return await this.repository.find();
+  }
+
   @Get(':id')
   async getById(@Param('id') id) {
     return await this.repository.findOne({ where: { id: id } });
