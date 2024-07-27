@@ -22,7 +22,7 @@ export class ExtensionsController {
   ) {}
 
   @Get()
-  async getAll(@Query('lang') lang) {
+  async getAll(@Query('lang') lang, @Query('admin') admin) {
     // const language = lang === 'ru' ? 'description_ru' : 'description_en';
 
     // return await this.repository.find({
@@ -36,27 +36,26 @@ export class ExtensionsController {
 
     const selectedLanguage = languageMap[lang]; // Use language map for clarity
 
-    if (!selectedLanguage) {
+    if (!selectedLanguage && !admin) {
       return {
-        message: 'Could not find this language',
+        message: 'Please provide language',
       };
+    } else {
+      if (selectedLanguage) {
+        const queryBuilder = this.repository.createQueryBuilder('entity'); // Alias for clarity
+
+        queryBuilder.select([
+          'id',
+          'name',
+          `SUBSTRING(${selectedLanguage}, 1, LENGTH(${selectedLanguage})) AS description`,
+          'link',
+        ]);
+
+        return await queryBuilder.getRawMany<{ description: string }>();
+      } else {
+        return await this.repository.find();
+      }
     }
-
-    const queryBuilder = this.repository.createQueryBuilder('entity'); // Alias for clarity
-
-    queryBuilder.select([
-      'id',
-      'name',
-      `SUBSTRING(${selectedLanguage}, 1, LENGTH(${selectedLanguage})) AS description`,
-      'link',
-    ]);
-
-    return await queryBuilder.getRawMany<{ description: string }>();
-  }
-
-  @Get('/admin')
-  async getAllAdmin() {
-    return await this.repository.find();
   }
 
   @Get(':id')
